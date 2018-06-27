@@ -3,8 +3,12 @@ $(document).ready(function () {
     var RPSMultiPlayer = function () {
 
         var database, connectionsRef, connectedRef;
-        var playerNum = 0;
-        var playerName = "default2";
+        var win_arr = new Array(2);
+        var loss_arr = new Array(2);
+        var playerNum = -1;
+        var screenName = "";
+        var winCnt = 0;
+        var lossCnt = 0;
 
         this.play = init;
 
@@ -38,7 +42,6 @@ $(document).ready(function () {
 
                 // Add user to the connections list.
                 var con = connectionsRef.push(true);
-
                 // Remove user from the connection list when they disconnect.
                 con.onDisconnect().remove();
             }
@@ -48,18 +51,68 @@ $(document).ready(function () {
         connectionsRef.on("value", function (snap) {
 
             // Set playerNum to numChildren
-            playerNum = snap.numChildren();
+            console.log(snap.val());
+            if (playerNum === -1) {
+                playerNum = snap.numChildren();
+                $("#myData").text("Player" + playerNum);
+            }
+            console.log("num:", playerNum);
+            // playerName = "player"+playerNum;
         });
 
+        /* ====================  Player Setup  ======================== */
+        $("#submitName").on("click", setScreenName);
+        $("#submitWin").on("click", setWin);
+        $("#submitLoss").on("click", setLoss);
+
+        function setScreenName(e) {
+            e.preventDefault();
+            screenName = $("#input-name").val();
+            $("#input-name").val('');
+        }
 
 
         /* ====================  WINS & LOSSES  ======================== */
 
-        database.ref("/player" + playerNum).on("value", function (snapshot) {
+        function setWin(e) {
+            e.preventDefault();
+            winCnt++;
+            win_arr[playerNum - 1] = winCnt;
+            database.ref("/win").set({
+                arr: JSON.stringify(win_arr)
+            });
+        }
+
+        function setLoss(e) {
+            e.preventDefault();
+            lossCnt++;
+            loss_arr[playerNum - 1] = lossCnt;
+            database.ref("/loss").set({
+                arr: JSON.stringify(loss_arr)
+            });
+        }
+
+        database.ref("/win").on("value", function (snapshot) {
 
             // Print the local data to the console.
             console.log(snapshot.val());
+            if (snapshot.child('arr').exists()) {
+                win_arr = JSON.parse(snapshot.val().arr);
+            }
 
+
+            // If any errors are experienced, log them to console.
+        }, function (errorObject) {
+            console.log("The read failed: " + errorObject.code);
+        });
+
+        database.ref("/loss").on("value", function (snapshot) {
+
+            // Print the local data to the console.
+            console.log(snapshot.val());
+            if (snapshot.child('arr').exists()) {
+                loss_arr = JSON.parse(snapshot.val().arr);
+            }
 
             // If any errors are experienced, log them to console.
         }, function (errorObject) {
@@ -83,12 +136,13 @@ $(document).ready(function () {
         function addMessage(e) {
             e.preventDefault();
             var obj = {
-                name: playerName,
+                name: screenName,
                 msg: $("#input-msg").val()
             };
+
             database.ref("/chat").push(obj);
         }
-
+        $("#input-msg").val('')
         function updateChat(val) {
 
             var card = $("<div>").addClass("card w-100");
