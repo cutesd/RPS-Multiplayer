@@ -57,6 +57,7 @@ $(document).ready(function () {
                 con.onDisconnect().remove();
                 //lastOnlineRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
                 database.ref("/players").onDisconnect().set(disObj);
+                database.ref("/chat").onDisconnect().set({});
             }
         });
 
@@ -134,7 +135,7 @@ $(document).ready(function () {
                 }
             });
             challengeName = obj[cid].name;
-            console.log(obj[cid]);
+            console.log("Challenger:", challengeName, obj[cid]);
             setPlayerDisplay();
         }
 
@@ -154,8 +155,11 @@ $(document).ready(function () {
                 }
             } else {
                 obj = snapshot.val();
+                if (oL > 1 && challengeName.length < 1) {
+                    setChallenger();
+                }
             }
-
+            oL = Object.keys(obj).length;
             setPlayerDisplay();
 
         });
@@ -163,8 +167,11 @@ $(document).ready(function () {
 
         function setPlayerDisplay() {
             (screenName.length > 0) ? $("#player").text(screenName) : $("#player").text('');
-            (oL > 1 && challengeName.length > 0) ? $("#challenger").text(challengeName) : $("#challenger").text('');
-            
+            (challengeName.length > 0) ? $("#challenger").text(challengeName) : $("#challenger").text('');
+            $("#pWin").text(obj[uid].win);
+            $("#pLoss").text(obj[uid].loss);
+            if (challengeName.length > 0) $("#cWin").text(obj[cid].win);
+            if (challengeName.length > 0) $("#cLoss").text(obj[cid].loss);
         }
 
 
@@ -175,44 +182,19 @@ $(document).ready(function () {
         function setWin(e) {
             e.preventDefault();
             winCnt++;
-            obj[screenName].win = winCnt;
+            obj[uid].win = winCnt;
             database.ref("/players").set(obj);
+            setPlayerDisplay();
         }
 
         function setLoss(e) {
             e.preventDefault();
             lossCnt++;
-            obj[screenName].loss = winCnt;
+            obj[uid].loss = lossCnt;
             database.ref("/players").set(obj);
+            setPlayerDisplay();
         }
 
-
-        // database.ref("/win").on("value", function (snapshot) {
-
-        //     // Print the local data to the console.
-        //     console.log(snapshot.val());
-        //     if (snapshot.child('arr').exists()) {
-        //         win_arr = JSON.parse(snapshot.val().arr);
-        //     }
-
-
-        //     // If any errors are experienced, log them to console.
-        // }, function (errorObject) {
-        //     console.log("The read failed: " + errorObject.code);
-        // });
-
-        // database.ref("/loss").on("value", function (snapshot) {
-
-        //     // Print the local data to the console.
-        //     console.log(snapshot.val());
-        //     if (snapshot.child('arr').exists()) {
-        //         loss_arr = JSON.parse(snapshot.val().arr);
-        //     }
-
-        //     // If any errors are experienced, log them to console.
-        // }, function (errorObject) {
-        //     console.log("The read failed: " + errorObject.code);
-        // });
 
         /* ====================  CHAT  ======================== */
 
@@ -234,7 +216,7 @@ $(document).ready(function () {
                 name: screenName,
                 msg: $("#input-msg").val()
             };
-
+            $("#input-msg").val('');
             database.ref("/chat").push(obj);
         }
         $("#input-msg").val('')
