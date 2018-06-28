@@ -7,8 +7,10 @@ $(document).ready(function () {
         var loss_arr = new Array(2);
         var playerNum = -1;
         var screenName = "";
+        var challengeName = "";
         var winCnt = 0;
         var lossCnt = 0;
+        var obj = {};
 
         this.play = init;
 
@@ -43,54 +45,77 @@ $(document).ready(function () {
                 // Add user to the connections list.
                 var con = connectionsRef.push(true);
                 // Remove user from the connection list when they disconnect.
+                // con.onDisconnect().
                 con.onDisconnect().remove();
             }
         });
 
         // When first loaded or when the connections list changes...
-        connectionsRef.on("value", function (snap) {
+        connectionsRef.limitToLast(2).on("value", function (snap) {
 
             // Set playerNum to numChildren
             console.log(snap.val());
-            if (playerNum === -1) {
-                playerNum = snap.numChildren();
-                $("#myData").text("Player" + playerNum);
-            }
+            // if (playerNum === -1) {
+            //     playerNum = snap.numChildren();
+            // }
             console.log("num:", playerNum);
             // playerName = "player"+playerNum;
         });
 
         /* ====================  Player Setup  ======================== */
-        $("#submitName").on("click", setScreenName);
+        $("#submitName").on("click", setData);
         $("#submitWin").on("click", setWin);
         $("#submitLoss").on("click", setLoss);
 
-        function setScreenName(e) {
+        function setData(e) {
             e.preventDefault();
             screenName = $("#input-name").val();
+            $.each(obj, function (key, val) {
+                if(key !== screenName){
+                    challengeName = key;
+                    console.log("challenger:", challengeName);
+                    return false;
+                }
+            });
+            obj[screenName] = {
+                name: screenName,
+                win: 0,
+                loss: 0
+            };
+            console.log("setData:", obj);
+            database.ref("/players").set(obj);
+            setScreenName();
+        }
+
+        function setScreenName() {
+            $("#myData").text(screenName);
+            $("#challengeData").text(challengeName);
             $("#input-name").val('');
         }
 
 
         /* ====================  WINS & LOSSES  ======================== */
 
+        
+
         function setWin(e) {
             e.preventDefault();
             winCnt++;
-            win_arr[playerNum - 1] = winCnt;
-            database.ref("/win").set({
-                arr: JSON.stringify(win_arr)
-            });
+            obj[screenName].win = winCnt;
+            database.ref("/players").set(obj);
         }
 
         function setLoss(e) {
             e.preventDefault();
             lossCnt++;
-            loss_arr[playerNum - 1] = lossCnt;
-            database.ref("/loss").set({
-                arr: JSON.stringify(loss_arr)
-            });
+            obj[screenName].loss = winCnt;
+            database.ref("/players").set(obj);
         }
+
+        database.ref("/players").limitToLast(2).on("value", function (snapshot) {
+            console.log("players:", snapshot.val());
+            obj = snapshot.val();
+        });
 
         database.ref("/win").on("value", function (snapshot) {
 
