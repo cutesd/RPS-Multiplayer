@@ -15,7 +15,9 @@ $(document).ready(function () {
         var gameNum = -1;
         var obj = {};
         var disObj = {};
+        var game_arr = [];
         var oL = 0;
+        var timer;
 
         this.play = init;
 
@@ -81,7 +83,8 @@ $(document).ready(function () {
                     $.each(obj, function (key, val) {
                         if (!snap.child(key).exists()) {
                             delete obj[key];
-
+                            disObj = {};
+                            challengeName = "";
                             database.ref("/players").set(obj);
                             return false;
                         }
@@ -92,8 +95,7 @@ $(document).ready(function () {
                 disObj[key] = obj[key];
             });
             oL = Object.keys(obj).length;
-            if (oL === 1) disObj = {};
-            console.log(oL, disObj);
+            //
             if (snap.numChildren() === 2) {
 
             }
@@ -102,8 +104,31 @@ $(document).ready(function () {
 
         /* ====================  Player Setup  ======================== */
         $("#submitName").on("click", setScreenName);
-        $("#submitWin").on("click", setWin);
-        $("#submitLoss").on("click", setLoss);
+
+        database.ref("/players").limitToLast(2).on("value", function (snapshot) {
+
+            console.log("players:", snapshot.val());
+
+            if (setUp) {
+                setUp = false;
+                if (snapshot.val() !== null) {
+                    obj = snapshot.val();
+                }
+                setObj(uid);
+                oL = Object.keys(obj).length;
+                if (oL > 1) {
+                    setChallenger();
+                }
+            } else {
+                obj = snapshot.val();
+                if (oL > 1 && challengeName.length < 1) {
+                    setChallenger();
+                }
+            }
+            oL = Object.keys(obj).length;
+            setPlayerDisplay();
+
+        });
 
         function setObj(key) {
             obj[key] = {
@@ -139,56 +164,102 @@ $(document).ready(function () {
             setPlayerDisplay();
         }
 
-        database.ref("/players").limitToLast(2).on("value", function (snapshot) {
-
-            console.log("players:", snapshot.val());
-
-            if (setUp) {
-                setUp = false;
-                if (snapshot.val() !== null) {
-                    obj = snapshot.val();
-                }
-                setObj(uid);
-                oL = Object.keys(obj).length;
-                if (oL > 1) {
-                    setChallenger();
-                }
-            } else {
-                obj = snapshot.val();
-                if (oL > 1 && challengeName.length < 1) {
-                    setChallenger();
-                }
-            }
-            oL = Object.keys(obj).length;
-            setPlayerDisplay();
-
-        });
-
-
         function setPlayerDisplay() {
             (screenName.length > 0) ? $("#player").text(screenName) : $("#player").text('');
             (challengeName.length > 0) ? $("#challenger").text(challengeName) : $("#challenger").text('');
-            $("#pWin").text(obj[uid].win);
-            $("#pLoss").text(obj[uid].loss);
+            $("#pWin").text(winCnt);
+            $("#pLoss").text(lossCnt);
             if (challengeName.length > 0) $("#cWin").text(obj[cid].win);
             if (challengeName.length > 0) $("#cLoss").text(obj[cid].loss);
         }
 
 
+
+
+        /* ====================  PLAY GAME  ======================== */
+        $("#submitRock").on("click", rock);
+        $("#submitPaper").on("click", paper);
+        $("#submitScissors").on("click", scissors);
+
+        database.ref("/game").on("child_added", function (snap) {
+            console.log("game", snap.val());
+            if (snap.val() !== null) game_arr.push(snap.val());
+            if (game_arr.length === 2) gamePlay();
+
+        });
+
+        function rock(e) {
+            e.preventDefault();
+            database.ref("/game").push({ id: uid, choice: "r" });
+        }
+
+        function paper(e) {
+            e.preventDefault();
+            database.ref("/game").push({ id: uid, choice: "p" });
+        }
+
+        function scissors(e) {
+            e.preventDefault();
+            database.ref("/game").push({ id: uid, choice: "s" });
+        }
+
+        function gamePlay() {
+            pl = (game_arr[0].id === uid) ? game_arr[0].choice : game_arr[1].choice;
+            ch = (game_arr[0].id !== uid) ? game_arr[0].choice : game_arr[1].choice;
+            game_arr = [];
+            database.ref("/game").set({});
+
+            if (ch === pl) {
+                tie();
+
+            } else if (ch === 'r') {
+                if (pl === 'p') {
+                    win();
+                } else {
+                    var timer = setTimeout(loss, 500);
+                }
+            } else if (ch === 'p') {
+                if (pl === 's') {
+                    win();
+                } else {
+                    var timer = setTimeout(loss, 500);
+                }
+            } else if (ch === 's') {
+                if (pl === 'r') {
+                    win();
+                } else {
+                    var timer = setTimeout(loss, 500);
+                }
+            }
+
+        }
+
+
+
         /* ====================  WINS & LOSSES  ======================== */
 
+        function tie() {
+            console.log("-----------------")
+            console.log("IT'S A TIE")
+            console.log("-----------------")
 
+        }
 
-        function setWin(e) {
-            e.preventDefault();
+        function win() {
+            console.log("-----------------")
+            console.log("YOU WIN")
+            console.log("-----------------")
             winCnt++;
             obj[uid].win = winCnt;
             database.ref("/players").set(obj);
             setPlayerDisplay();
         }
 
-        function setLoss(e) {
-            e.preventDefault();
+        function loss() {
+            console.log("-----------------")
+            console.log("YOU LOSE")
+            console.log("-----------------")
+            clearTimeout(timer);
             lossCnt++;
             obj[uid].loss = lossCnt;
             database.ref("/players").set(obj);
@@ -219,42 +290,29 @@ $(document).ready(function () {
             $("#input-msg").val('');
             database.ref("/chat").push(obj);
         }
-        $("#input-msg").val('')
+
+        //
         function updateChat(val) {
 
-            var card = $("<div>").addClass("card w-100");
-            card.append(`<div class="card-body">
-            <h5 class="card-title">`+ val.name + ` says:</h5>
-            <p class="card-text">`+ val.msg + `</p>
-          </div>`);
-            $("#msg-window").append(card);
+            //     var card = $("<div>").addClass("card w-100");
+            //     card.append(`<div class="card-body">
+            //     <h5 class="card-title">`+ val.name + ` says:</h5>
+            //     <p class="card-text">`+ val.msg + `</p>
+            //   </div>`);
+            // Create an element
+            var nameElement = $('<strong>').text(val.name);
+            var messageElement = $('<li>').text(val.msg).prepend(nameElement);
+
+            // Add the message to the DOM
+            $("#msg-window").append(messageElement);
+
+            // Scroll to the bottom of the message list
+            messageList[0].scrollTop = messageList[0].scrollHeight;
+
+            // $("#msg-window").append(card);
         }
 
-        function gamePlay() {
-            if (computerGuess === userGuess) {
-                ties++;
 
-            } else if (computerGuess === 'r') {
-                if (userGuess === 'p') {
-                    wins++;
-                } else {
-                    losses++;
-                }
-            } else if (computerGuess === 'p') {
-                if (userGuess === 's') {
-                    wins++;
-                } else {
-                    losses++;
-                }
-            } else if (computerGuess === 's') {
-                if (userGuess === 'r') {
-                    wins++;
-                } else {
-                    losses++;
-                }
-            }
-
-        }
 
         //
         //

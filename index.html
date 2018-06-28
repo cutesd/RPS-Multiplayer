@@ -36,23 +36,36 @@
         <div class="card w-25">
             <div class="card-body">
                 <h5 class="card-title" id="player"></h5>
-                <p class="card-text">Wins: <span id="pWin"></span></p>
-                <p class="card-text">Losses: <span id="pLoss"></span></p>
-                <button type="submit" id="submitWin" class="btn btn-success">Win</button>
-                <button type="submit" id="submitLoss" class="btn btn-danger">Loss</button>
+                <p class="card-text">Wins:
+                    <span id="pWin"></span>
+                </p>
+                <p class="card-text">Losses:
+                    <span id="pLoss"></span>
+                </p>
+                <button type="submit" id="submitRock" class="btn btn-success">Rock</button>
+                <button type="submit" id="submitPaper" class="btn btn-warning">Paper</button>
+                <button type="submit" id="submitScissors" class="btn btn-danger">Scissors</button>
             </div>
         </div>
         <div class="card w-25">
             <div class="card-body">
                 <h5 class="card-title" id="challenger"></h5>
-                <p class="card-text">Wins: <span id="cWin"></span></p>
-                <p class="card-text">Losses: <span id="cLoss"></span></p>
+                <p class="card-text">Wins:
+                    <span id="cWin"></span>
+                </p>
+                <p class="card-text">Losses:
+                    <span id="cLoss"></span>
+                </p>
             </div>
         </div>
 
         <div class="card w-50 mx-auto mt-4">
-            <div class="card-body" id="msg-window">
-                <!-- Messages go here -->
+            <div class="card-body">
+                <div class="messagesWrap">
+                    <ul id="msg-window">
+                        <!-- Messages go here -->
+                    </ul>
+                </div>
             </div>
             <div class="card-footer">
                 <form class="form-inline w-100">
