@@ -4,21 +4,20 @@ $(document).ready(function () {
 
         var database, connectionsRef, connectedRef;
         var uid, cid;
-        var win_arr = new Array(2);
-        var loss_arr = new Array(2);
-        var numPlayers = 0;
         var setUp = true;
         var screenName = "";
         var challengeName = "";
         var winCnt = 0;
         var lossCnt = 0;
-        var gameNum = -1;
         var obj = {};
         var disObj = {};
         var game_arr = [];
         var oL = 0;
         var timer;
         var wait = false;
+        //
+        var pOut = "";
+        var cOut = "";
 
         var gameContainer = $("#game-container");
 
@@ -105,8 +104,10 @@ $(document).ready(function () {
 
         });
 
-        /* ====================  VIEW  ======================== */
 
+        /* ============================================================ */
+        /* =======================  VIEW  ============================= */
+        /* ============================================================ */
 
 
         function setPlayerDisplay() {
@@ -116,6 +117,7 @@ $(document).ready(function () {
             $("#pLoss").text(lossCnt);
             if (challengeName.length > 0) $("#cWin").text(obj[cid].win);
             if (challengeName.length > 0) $("#cLoss").text(obj[cid].loss);
+            if (challengeName.length > 0) $("#cName").text(challengeName);
         }
 
         function checkIfGameReady() {
@@ -172,18 +174,37 @@ $(document).ready(function () {
                     timer = setTimeout(gamePlay, 1000);
                     break;
                 case 'results':
-                    setPlayerDisplay();
                     div.append(`<h2>` + out + `</h2>`);
+                    
+                    $("#cchoice-img").attr("src","assets/images/"+cOut+".png");
+                    $("#cchoice-out").text(cOut);
+
+                    setPlayerDisplay();
                     timer = setTimeout(function () { consoleOut('restart') }, 3000);
                     break;
                 case 'restart':
+                    pOut = cOut = "";
+                    $("#pchoice-out").text('')
+                    $("#cchoice-out").text('');
+                    $("#pchoice-img").attr("src","assets/images/q.jpg");
+                    $("#cchoice-img").attr("src","assets/images/q.jpg");
+
                     makeVis("btnContainer", true);
                     consoleOut('gamestart');
-
             }
 
-
             $("#console").append(div);
+        }
+
+        function getRPSval(choice) {
+            switch (choice) {
+                case "r":
+                    return "rock";
+                case "p":
+                    return "paper";
+                case "s":
+                    return "scissors";
+            }
         }
 
         function makeVis(id, val) {
@@ -193,9 +214,12 @@ $(document).ready(function () {
                 $("#" + id).addClass("d-none");
         }
 
-        /* ====================  VIEW  ======================== */
 
+        /* ============================================================ */
         /* ====================  PLAYER SETUP  ======================== */
+        /* ============================================================ */
+
+
         $("#submitName").on("click", setScreenName);
 
         database.ref("/players").limitToLast(2).on("value", function (snapshot) {
@@ -280,27 +304,38 @@ $(document).ready(function () {
         function rock(e) {
             e.preventDefault();
             makeVis("btnContainer", false);
-            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            //
+            $("#pchoice-img").attr('src',"assets/images/rock.png");
+            $("#pchoice-out").text("rock");
+
             database.ref("/game").push({ name: screenName, id: uid, choice: "r" });
         }
 
         function paper(e) {
             e.preventDefault();
             makeVis("btnContainer", false);
-            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            //
+            $("#pchoice-img").attr('src',"assets/images/paper.png");
+            $("#pchoice-out").text("paper");
+            
             database.ref("/game").push({ name: screenName, id: uid, choice: "p" });
         }
 
         function scissors(e) {
             e.preventDefault();
             makeVis("btnContainer", false);
-            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            $("#pchoice-img").attr('src',"assets/images/scissors.png");
+            $("#pchoice-out").text("scissors");
+            
             database.ref("/game").push({ name: screenName, id: uid, choice: "s" });
         }
 
         function gamePlay() {
             pl = (game_arr[0].id === uid) ? game_arr[0].choice : game_arr[1].choice;
             ch = (game_arr[0].id !== uid) ? game_arr[0].choice : game_arr[1].choice;
+            pOut = (game_arr[0].id === uid) ? getRPSval(game_arr[0].choice) : getRPSval(game_arr[1].choice);
+            cOut = (game_arr[0].id !== uid) ? getRPSval(game_arr[0].choice) : getRPSval(game_arr[1].choice);
+
             game_arr = [];
             var fName = "";
             database.ref("/game").set({});
