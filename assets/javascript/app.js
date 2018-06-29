@@ -26,8 +26,6 @@ $(document).ready(function () {
 
         function init() {
             console.log('ready');
-
-
         }
 
         // Initialize Firebase
@@ -45,11 +43,6 @@ $(document).ready(function () {
         database = firebase.database();
         connectionsRef = database.ref("/connections");
         connectedRef = database.ref(".info/connected");
-        // userRef = database.ref('/presence/' + userid);
-
-        // userRef.on("value", function (snapshot) {
-        //     console.log("user:", snapshot.val);
-        // });
 
         // When the client's connection state changes...
         connectedRef.on("value", function (snap) {
@@ -90,6 +83,7 @@ $(document).ready(function () {
                             challengeName = "";
                             database.ref("/players").set(obj);
                             database.ref("/chat").set({});
+                            $("#messages").empty();
                             return false;
                         }
                     });
@@ -125,6 +119,7 @@ $(document).ready(function () {
         function checkIfGameReady() {
             if (screenName.length > 0 && challengeName.length > 0) {
                 makeVis('wait', false);
+                $("#welcome-msg").text("Sorry " + screenName);
                 $("#wait").find('h4').text(challengeName + " has left the game.")
                 makeVis('welcome', false);
                 gameContainer.removeClass("justify-content-center");
@@ -133,7 +128,6 @@ $(document).ready(function () {
                 makeVis('game-play', true);
 
             } else if (screenName.length > 0) {
-                $("#welcome-msg").text("Welcome " + screenName);
                 makeVis('welcome', false);
                 gameContainer.removeClass("justify-content-between");
                 gameContainer.addClass("justify-content-center");
@@ -279,6 +273,7 @@ $(document).ready(function () {
             $("#input-name").val('');
             // 
             database.ref("/players").set(obj);
+            $("#welcome-msg").text("Welcome " + screenName);
             $(".chat-icon").removeClass("d-none");
             setPlayerDisplay();
             checkIfGameReady();
@@ -461,11 +456,6 @@ $(document).ready(function () {
         //
         function updateChat(val) {
 
-            //     var card = $("<div>").addClass("card w-100");
-            //     card.append(`<div class="card-body">
-            //     <h5 class="card-title">`+ val.name + ` says:</h5>
-            //     <p class="card-text">`+ val.msg + `</p>
-            //   </div>`);
             // Create an element
             var messageList = $('#messages');
             var nameElement = $('<strong>').text(val.name);
@@ -477,7 +467,6 @@ $(document).ready(function () {
             // Scroll to the bottom of the message list
             messageList[0].scrollTop = messageList[0].scrollHeight;
 
-            // $("#messages").append(card);
         }
 
 
