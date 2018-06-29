@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css?family=Abril+Fatface|Alfa+Slab+One|Audiowide|Bowlby+One+SC|Carter+One|Comfortaa|Eater|Fredericka+the+Great|Fugaz+One|Galada|Lobster|Lobster+Two|Luckiest+Guy|Monoton|Overlock|Patua+One|Poiret+One|Poor+Story|Righteous|Shrikhand|Special+Elite|Spirax|Titan+One');
+@import url('https://fonts.googleapis.com/css?family=Audiowide|Comfortaa');
 
 html,body{
     width:100%;
@@ -35,6 +35,11 @@ h1{
 
 .card-footer{
     padding: 5px 1rem;
+}
+
+#wait img{
+  min-height: 250px;
+  max-height: 300px;
 }
 
 #game-play{
@@ -81,11 +86,13 @@ h1{
 }
 
 #msg-window {
-    max-height:350px;
-    overflow:scroll;
-    background:white;
-    padding:20px;
-    position: relative;
+  max-height: 255px;
+  overflow: scroll;
+  background: white;
+  padding: 20px;
+  position: absolute;
+  bottom: 20px;
+  right: 50px;
   }
 
   #msg-window .card-body{
@@ -105,7 +112,7 @@ h1{
     position: absolute;
     top: 0;
     left: 0;
-    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 20%,rgba(255,255,255,0) 97%,rgba(255,255,255,0) 100%); /* W3C */
+    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,0) 25%,rgba(255,255,255,0) 100%); /* W3C */
   }
   
   #msg-window li {
@@ -118,4 +125,24 @@ h1{
   #msg-window strong {
     margin-right: 10px;
     color:#d12028;
+  }
+
+  #input-msg{
+    width: calc(100% - 96px);
+  }
+
+  .chat-icon{
+    position: absolute;
+    bottom: 5px;
+    right: 15px;
+    color: #FFF;
+    font-size: 3rem;
+    background: url("../images/h-bg.gif");
+    background-color: #E5521C;
+    padding: 5px 15px;
+    border-radius: 50%;
+  }
+
+  .chat-icon:hover{
+    cursor:pointer;
   }

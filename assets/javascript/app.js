@@ -14,6 +14,7 @@ $(document).ready(function () {
         var game_arr = [];
         var oL = 0;
         var timer;
+        var timer2;
         var wait = false;
         //
         var pOut = "";
@@ -88,6 +89,7 @@ $(document).ready(function () {
                             disObj = {};
                             challengeName = "";
                             database.ref("/players").set(obj);
+                            database.ref("/chat").set({});
                             return false;
                         }
                     });
@@ -123,6 +125,7 @@ $(document).ready(function () {
         function checkIfGameReady() {
             if (screenName.length > 0 && challengeName.length > 0) {
                 makeVis('wait', false);
+                $("#wait").find('h4').text(challengeName + " has left the game.")
                 makeVis('welcome', false);
                 gameContainer.removeClass("justify-content-center");
                 gameContainer.addClass("justify-content-between");
@@ -132,7 +135,11 @@ $(document).ready(function () {
             } else if (screenName.length > 0) {
                 $("#welcome-msg").text("Welcome " + screenName);
                 makeVis('welcome', false);
+                gameContainer.removeClass("justify-content-between");
+                gameContainer.addClass("justify-content-center");
+                $("#wait").find("img").attr("src", "https://media.giphy.com/media/" + getRndGif() + "/giphy.gif")
                 makeVis('wait', true);
+                makeVis('game-play', false);
             }
         }
 
@@ -154,7 +161,7 @@ $(document).ready(function () {
                     timer = setTimeout(function () { consoleOut('ready') }, 1000);
                     break;
                 case 'ready':
-                    div.append(`<h3>Ready</h3>`);
+                    div.append(`<h3>Ready?</h3>`);
                     timer = setTimeout(function () { consoleOut('count1') }, 1000);
                     break;
                 case 'count1':
@@ -170,24 +177,24 @@ $(document).ready(function () {
                     timer = setTimeout(function () { consoleOut('roch') }, 1000);
                     break;
                 case 'roch':
-                    div.append(`<h3>ROCHAMBEAU</h3>`);
+                    div.append(`<h3>ROCHAMBEAU!!</h3>`);
                     timer = setTimeout(gamePlay, 1000);
                     break;
                 case 'results':
                     div.append(`<h2>` + out + `</h2>`);
-                    
-                    $("#cchoice-img").attr("src","assets/images/"+cOut+".png");
+
+                    $("#cchoice-img").attr("src", "assets/images/" + cOut + ".png");
                     $("#cchoice-out").text(cOut);
 
                     setPlayerDisplay();
-                    timer = setTimeout(function () { consoleOut('restart') }, 3000);
+                    timer = setTimeout(function () { consoleOut('restart') }, 4000);
                     break;
                 case 'restart':
                     pOut = cOut = "";
                     $("#pchoice-out").text('')
                     $("#cchoice-out").text('');
-                    $("#pchoice-img").attr("src","assets/images/q.jpg");
-                    $("#cchoice-img").attr("src","assets/images/q.jpg");
+                    $("#pchoice-img").attr("src", "assets/images/q.jpg");
+                    $("#cchoice-img").attr("src", "assets/images/q.jpg");
 
                     makeVis("btnContainer", true);
                     consoleOut('gamestart');
@@ -205,6 +212,12 @@ $(document).ready(function () {
                 case "s":
                     return "scissors";
             }
+        }
+
+        function getRndGif() {
+            var gif_arr = ["DfSLII45H40RW", "3rgXBvnbXtxwaWmhr2", "l0HUqsz2jdQYElRm0", "l0MYt5jPR6QX5pnqM", "6fScAIQR0P0xW"];
+            var rnd = Math.floor(Math.random() * gif_arr.length);
+            return gif_arr[rnd];
         }
 
         function makeVis(id, val) {
@@ -266,6 +279,7 @@ $(document).ready(function () {
             $("#input-name").val('');
             // 
             database.ref("/players").set(obj);
+            $(".chat-icon").removeClass("d-none");
             setPlayerDisplay();
             checkIfGameReady();
         }
@@ -285,8 +299,11 @@ $(document).ready(function () {
         }
 
 
+        /* ============================================================ */
+        /* =======================  PLAY GAME  ======================== */
+        /* ============================================================ */
 
-        /* ====================  PLAY GAME  ======================== */
+
         $("#submitRock").on("click", rock);
         $("#submitPaper").on("click", paper);
         $("#submitScissors").on("click", scissors);
@@ -305,7 +322,7 @@ $(document).ready(function () {
             e.preventDefault();
             makeVis("btnContainer", false);
             //
-            $("#pchoice-img").attr('src',"assets/images/rock.png");
+            $("#pchoice-img").attr('src', "assets/images/rock.png");
             $("#pchoice-out").text("rock");
 
             database.ref("/game").push({ name: screenName, id: uid, choice: "r" });
@@ -315,18 +332,18 @@ $(document).ready(function () {
             e.preventDefault();
             makeVis("btnContainer", false);
             //
-            $("#pchoice-img").attr('src',"assets/images/paper.png");
+            $("#pchoice-img").attr('src', "assets/images/paper.png");
             $("#pchoice-out").text("paper");
-            
+
             database.ref("/game").push({ name: screenName, id: uid, choice: "p" });
         }
 
         function scissors(e) {
             e.preventDefault();
             makeVis("btnContainer", false);
-            $("#pchoice-img").attr('src',"assets/images/scissors.png");
+            $("#pchoice-img").attr('src', "assets/images/scissors.png");
             $("#pchoice-out").text("scissors");
-            
+
             database.ref("/game").push({ name: screenName, id: uid, choice: "s" });
         }
 
@@ -337,7 +354,6 @@ $(document).ready(function () {
             cOut = (game_arr[0].id !== uid) ? getRPSval(game_arr[0].choice) : getRPSval(game_arr[1].choice);
 
             game_arr = [];
-            var fName = "";
             database.ref("/game").set({});
 
             if (ch === pl) {
@@ -347,27 +363,28 @@ $(document).ready(function () {
                 if (pl === 'p') {
                     win();
                 } else {
-                    setTimeout(loss, 500);
+                    timer2 = setTimeout(loss, 500);
                 }
             } else if (ch === 'p') {
                 if (pl === 's') {
                     win();
                 } else {
-                    setTimeout(loss, 500);
+                    timer2 = setTimeout(loss, 500);
                 }
             } else if (ch === 's') {
                 if (pl === 'r') {
                     win();
                 } else {
-                    setTimeout(loss, 500);
+                    timer2 = setTimeout(loss, 500);
                 }
             }
 
         }
 
 
-
-        /* ====================  WINS & LOSSES  ======================== */
+        /* ============================================================ */
+        /* ====================  WINS & LOSSES  ======================= */
+        /* ============================================================ */
 
         function tie() {
             console.log("-----------------")
@@ -387,10 +404,11 @@ $(document).ready(function () {
             database.ref("/players").set(obj);
             timer = setTimeout(function () {
                 consoleOut('results', "YOU WON!!")
-            }, 500)
+            }, 750)
         }
 
         function loss() {
+            clearTimeout(timer2);
             console.log("-----------------")
             console.log("YOU LOSE")
             console.log("-----------------")
@@ -401,12 +419,14 @@ $(document).ready(function () {
 
             timer = setTimeout(function () {
                 consoleOut('results', "YOU LOST.")
-            }, 600)
+            }, 750)
         }
 
+        /* ============================================================ */
+        /* ========================  CHAT  ============================ */
+        /* ============================================================ */
 
-        /* ====================  CHAT  ======================== */
-
+        $(".chat-icon").on("click", showMessageWindow);
         $("#sendBtn").on("click", addMessage)
 
         database.ref("/chat").limitToLast(5).on("child_added", function (snapshot) {
@@ -429,6 +449,15 @@ $(document).ready(function () {
             database.ref("/chat").push(obj);
         }
 
+        function showMessageWindow(e) {
+            e.preventDefault();
+            if ($("#msg-window").hasClass("d-none")) {
+                makeVis("msg-window", true);
+            } else {
+                makeVis("msg-window", false);
+            }
+        }
+
         //
         function updateChat(val) {
 
@@ -438,6 +467,7 @@ $(document).ready(function () {
             //     <p class="card-text">`+ val.msg + `</p>
             //   </div>`);
             // Create an element
+            var messageList = $('#messages');
             var nameElement = $('<strong>').text(val.name);
             var messageElement = $('<li>').text(val.msg).prepend(nameElement);
 
