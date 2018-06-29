@@ -18,6 +18,9 @@ $(document).ready(function () {
         var game_arr = [];
         var oL = 0;
         var timer;
+        var wait = false;
+
+        var gameContainer = $("#game-container");
 
         this.play = init;
 
@@ -96,13 +99,103 @@ $(document).ready(function () {
             });
             oL = Object.keys(obj).length;
             //
-            if (snap.numChildren() === 2) {
-
+            if (snap.numChildren() === 2 && wait) {
+                checkIfGameReady();
             }
 
         });
 
-        /* ====================  Player Setup  ======================== */
+        /* ====================  VIEW  ======================== */
+
+
+
+        function setPlayerDisplay() {
+            (screenName.length > 0) ? $("#playerName").text(screenName) : $("#playerName").text('');
+            (challengeName.length > 0) ? $("#challengerName").text(challengeName) : $("#challengerName").text('');
+            $("#pWin").text(winCnt);
+            $("#pLoss").text(lossCnt);
+            if (challengeName.length > 0) $("#cWin").text(obj[cid].win);
+            if (challengeName.length > 0) $("#cLoss").text(obj[cid].loss);
+        }
+
+        function checkIfGameReady() {
+            if (screenName.length > 0 && challengeName.length > 0) {
+                makeVis('wait', false);
+                makeVis('welcome', false);
+                gameContainer.removeClass("justify-content-center");
+                gameContainer.addClass("justify-content-between");
+                consoleOut('gamestart');
+                makeVis('game-play', true);
+
+            } else if (screenName.length > 0) {
+                $("#welcome-msg").text("Welcome " + screenName);
+                makeVis('welcome', false);
+                makeVis('wait', true);
+            }
+        }
+
+        function consoleOut(val, out) {
+            $("#console").empty();
+            clearTimeout(timer);
+            var div = $("<div>")
+
+            //
+            switch (val) {
+                case 'gamestart':
+                    div.append(`<h3>Welcome players</h3><p>Please make your selections</p>`);
+                    break;
+                case 'choicemade':
+                    div.append(`<h3>Choice Made:</h3><p>` + out + ` has made their choice</p>`);
+                    break;
+                case 'allselected':
+                    div.append(`<h3>Choices have been selected</h3>`);
+                    timer = setTimeout(function () { consoleOut('ready') }, 1000);
+                    break;
+                case 'ready':
+                    div.append(`<h3>Ready</h3>`);
+                    timer = setTimeout(function () { consoleOut('count1') }, 1000);
+                    break;
+                case 'count1':
+                    div.append(`<h3>1</h3>`);
+                    timer = setTimeout(function () { consoleOut('count2') }, 1000);
+                    break;
+                case 'count2':
+                    div.append(`<h3>2</h3>`);
+                    timer = setTimeout(function () { consoleOut('count3') }, 1000);
+                    break;
+                case 'count3':
+                    div.append(`<h3>3</h3>`);
+                    timer = setTimeout(function () { consoleOut('roch') }, 1000);
+                    break;
+                case 'roch':
+                    div.append(`<h3>ROCHAMBEAU</h3>`);
+                    timer = setTimeout(gamePlay, 1000);
+                    break;
+                case 'results':
+                    setPlayerDisplay();
+                    div.append(`<h2>` + out + `</h2>`);
+                    timer = setTimeout(function () { consoleOut('restart') }, 3000);
+                    break;
+                case 'restart':
+                    makeVis("btnContainer", true);
+                    consoleOut('gamestart');
+
+            }
+
+
+            $("#console").append(div);
+        }
+
+        function makeVis(id, val) {
+            if (val)
+                $("#" + id).removeClass("d-none");
+            else
+                $("#" + id).addClass("d-none");
+        }
+
+        /* ====================  VIEW  ======================== */
+
+        /* ====================  PLAYER SETUP  ======================== */
         $("#submitName").on("click", setScreenName);
 
         database.ref("/players").limitToLast(2).on("value", function (snapshot) {
@@ -121,6 +214,7 @@ $(document).ready(function () {
                 }
             } else {
                 obj = snapshot.val();
+                console.log("challengeName:", challengeName);
                 if (oL > 1 && challengeName.length < 1) {
                     setChallenger();
                 }
@@ -146,9 +240,10 @@ $(document).ready(function () {
             screenName = $("#input-name").val();
             obj[uid].name = screenName;
             $("#input-name").val('');
-            // console.log("setScreenName:", obj);
+            // 
             database.ref("/players").set(obj);
             setPlayerDisplay();
+            checkIfGameReady();
         }
 
         function setChallenger() {
@@ -159,20 +254,11 @@ $(document).ready(function () {
                     return false;
                 }
             });
-            challengeName = obj[cid].name;
+            if (obj[cid]) challengeName = obj[cid].name;
             console.log("Challenger:", challengeName, obj[cid]);
             setPlayerDisplay();
+            checkIfGameReady();
         }
-
-        function setPlayerDisplay() {
-            (screenName.length > 0) ? $("#player").text(screenName) : $("#player").text('');
-            (challengeName.length > 0) ? $("#challenger").text(challengeName) : $("#challenger").text('');
-            $("#pWin").text(winCnt);
-            $("#pLoss").text(lossCnt);
-            if (challengeName.length > 0) $("#cWin").text(obj[cid].win);
-            if (challengeName.length > 0) $("#cLoss").text(obj[cid].loss);
-        }
-
 
 
 
@@ -183,30 +269,40 @@ $(document).ready(function () {
 
         database.ref("/game").on("child_added", function (snap) {
             console.log("game", snap.val());
-            if (snap.val() !== null) game_arr.push(snap.val());
-            if (game_arr.length === 2) gamePlay();
+            if (snap.val() !== null) {
+                game_arr.push(snap.val());
+                consoleOut("choicemade", game_arr[0].name);
+            };
+            if (game_arr.length === 2) consoleOut("allselected");
 
         });
 
         function rock(e) {
             e.preventDefault();
-            database.ref("/game").push({ id: uid, choice: "r" });
+            makeVis("btnContainer", false);
+            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            database.ref("/game").push({ name: screenName, id: uid, choice: "r" });
         }
 
         function paper(e) {
             e.preventDefault();
-            database.ref("/game").push({ id: uid, choice: "p" });
+            makeVis("btnContainer", false);
+            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            database.ref("/game").push({ name: screenName, id: uid, choice: "p" });
         }
 
         function scissors(e) {
             e.preventDefault();
-            database.ref("/game").push({ id: uid, choice: "s" });
+            makeVis("btnContainer", false);
+            $("#player").find("card-footer").append("<p>Choice Selected</p>");
+            database.ref("/game").push({ name: screenName, id: uid, choice: "s" });
         }
 
         function gamePlay() {
             pl = (game_arr[0].id === uid) ? game_arr[0].choice : game_arr[1].choice;
             ch = (game_arr[0].id !== uid) ? game_arr[0].choice : game_arr[1].choice;
             game_arr = [];
+            var fName = "";
             database.ref("/game").set({});
 
             if (ch === pl) {
@@ -216,19 +312,19 @@ $(document).ready(function () {
                 if (pl === 'p') {
                     win();
                 } else {
-                    var timer = setTimeout(loss, 500);
+                    setTimeout(loss, 500);
                 }
             } else if (ch === 'p') {
                 if (pl === 's') {
                     win();
                 } else {
-                    var timer = setTimeout(loss, 500);
+                    setTimeout(loss, 500);
                 }
             } else if (ch === 's') {
                 if (pl === 'r') {
                     win();
                 } else {
-                    var timer = setTimeout(loss, 500);
+                    setTimeout(loss, 500);
                 }
             }
 
@@ -242,7 +338,9 @@ $(document).ready(function () {
             console.log("-----------------")
             console.log("IT'S A TIE")
             console.log("-----------------")
-
+            timer = setTimeout(function () {
+                consoleOut('results', "TIE GAME")
+            }, 500)
         }
 
         function win() {
@@ -252,7 +350,9 @@ $(document).ready(function () {
             winCnt++;
             obj[uid].win = winCnt;
             database.ref("/players").set(obj);
-            setPlayerDisplay();
+            timer = setTimeout(function () {
+                consoleOut('results', "YOU WON!!")
+            }, 500)
         }
 
         function loss() {
@@ -263,7 +363,10 @@ $(document).ready(function () {
             lossCnt++;
             obj[uid].loss = lossCnt;
             database.ref("/players").set(obj);
-            setPlayerDisplay();
+
+            timer = setTimeout(function () {
+                consoleOut('results', "YOU LOST.")
+            }, 600)
         }
 
 
@@ -304,12 +407,12 @@ $(document).ready(function () {
             var messageElement = $('<li>').text(val.msg).prepend(nameElement);
 
             // Add the message to the DOM
-            $("#msg-window").append(messageElement);
+            $("#messages").append(messageElement);
 
             // Scroll to the bottom of the message list
             messageList[0].scrollTop = messageList[0].scrollHeight;
 
-            // $("#msg-window").append(card);
+            // $("#messages").append(card);
         }
 
 

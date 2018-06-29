@@ -20,66 +20,125 @@
 </head>
 
 <body>
+    <header class="jumbotron text-center">
+        <h1>Rochambeau</h1>
+    </header>
 
-    <div class="d-flex flex-row flex-wrap">
-        <div class="card w-50">
-            <form>
-                <div class="form-group">
-                    <label for="input-name">Screen Name:</label>
-                    <input type="text" class="form-control" id="input-name" placeholder="Enter your screen name">
-                </div>
+    <div class="d-flex justify-content-center align-items-center h-50" id="game-container">
 
-                <button type="submit" id="submitName" class="btn btn-primary">Submit</button>
-            </form>
-        </div>
+        <!-- ============  WELCOME ============ -->
 
-        <div class="card w-25">
-            <div class="card-body">
-                <h5 class="card-title" id="player"></h5>
-                <p class="card-text">Wins:
-                    <span id="pWin"></span>
-                </p>
-                <p class="card-text">Losses:
-                    <span id="pLoss"></span>
-                </p>
-                <button type="submit" id="submitRock" class="btn btn-success">Rock</button>
-                <button type="submit" id="submitPaper" class="btn btn-warning">Paper</button>
-                <button type="submit" id="submitScissors" class="btn btn-danger">Scissors</button>
-            </div>
-        </div>
-        <div class="card w-25">
-            <div class="card-body">
-                <h5 class="card-title" id="challenger"></h5>
-                <p class="card-text">Wins:
-                    <span id="cWin"></span>
-                </p>
-                <p class="card-text">Losses:
-                    <span id="cLoss"></span>
-                </p>
-            </div>
-        </div>
+        <div class="card w-50" id="welcome">
+            <h2 class="jumbotron text-center">Welcome to Rochambeau</h2>
+            <div class="container">
+                <div class="card-body">
+                    <h4>Please Enter a Screen Name</h4>
+                    <form>
+                        <div class="form-group">
+                            <label for="input-name" class="sr-only">Screen Name:</label>
+                            <input type="text" class="form-control" id="input-name" placeholder="Enter your screen name">
+                        </div>
 
-        <div class="card w-50 mx-auto mt-4">
-            <div class="card-body">
-                <div class="messagesWrap">
-                    <ul id="msg-window">
-                        <!-- Messages go here -->
-                    </ul>
+                        <button type="submit" id="submitName" class="btn btn-primary">Submit</button>
+                    </form>
                 </div>
             </div>
-            <div class="card-footer">
-                <form class="form-inline w-100">
-                    <div class="form-group">
-                        <label for="input-msg" class="sr-only">Message</label>
-                        <input type="text" class="form-control form-control-lg w-100" id="input-msg" placeholder="Type message here">
+        </div>
+
+        <!-- ============  WAIT ============ -->
+
+        <div class="card w-50 d-none" id="wait">
+            <div class="jumbotron text-center">
+                <h2 id="welcome-msg">Welcome</h2>
+                <h4>Your challenger has not yet arrived...</h4>
+            </div>
+            <div class="container">
+                <div class="card-body text-center">
+                    <h5>Something while you wait:</h5>
+                    <img src="http://placehold.it/250x150" alt="">
+                </div>
+            </div>
+        </div>
+
+        <div class="container d-none" id="game-play">
+
+            <!-- ============  PLAYER ============ -->
+
+            <div class="card text-center" id="player">
+                <div class="card-header">Player:
+                    <span id="playerName"></span>
+                </div>
+                <div class="card-body">
+
+                    <p class="card-text w-50">Wins:
+                        <span id="pWin"></span>
+                    </p>
+                    <p class="card-text w-50">Losses:
+                        <span id="pLoss"></span>
+                    </p>
+
+                </div>
+                <div class="card-footer">
+                    <div id="btnContainer">
+                        <button type="submit" id="submitRock" class="btn btn-secondary">Rock</button>
+                        <button type="submit" id="submitPaper" class="btn btn-warning">Paper</button>
+                        <button type="submit" id="submitScissors" class="btn btn-info">Scissors</button>
                     </div>
-                    <div class="ml-auto">
-                        <button type="submit" id="sendBtn" class="btn btn-lg btn-primary">Send</button>
-                    </div>
-                </form>
+                </div>
+            </div>
+
+            <!-- ============  CONSOLE  ============ -->
+
+            <div class="align-self-center text-center w-25" id="console">
+
+            </div>
+
+            <!-- ============  CHALLENGER ============ -->
+
+            <div class="card text-center" id="challenger">
+                <div class="card-header">Challenger:
+                    <span id="challengerName"></span>
+                </div>
+                <div class="card-body">
+
+                    <p class="card-text w-50">Wins:
+                        <span id="cWin"></span>
+                    </p>
+                    <p class="card-text w-50">Losses:
+                        <span id="cLoss"></span>
+                    </p>
+
+                </div>
+                <div class="card-footer">
+
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- ============  CHAT ============ -->
+
+    <div class="card w-50 mx-auto mt-4 d-none" id="msg-window">
+        <div class="card-body">
+            <div class="messagesWrap">
+                <ul id="messages">
+                    <!-- Messages go here -->
+                </ul>
+            </div>
+        </div>
+        <div class="card-footer">
+            <form class="form-inline w-100">
+                <div class="form-group">
+                    <label for="input-msg" class="sr-only">Message</label>
+                    <input type="text" class="form-control form-control-lg w-100" id="input-msg" placeholder="Type message here">
+                </div>
+                <div class="ml-auto">
+                    <button type="submit" id="sendBtn" class="btn btn-lg btn-primary">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
 
     <!-- ==========================  JAVASCRIPT ===================================== -->
